@@ -61,6 +61,40 @@ defineApp({
 
 Publishing a new script version changes subsequent page loads immediately. No JAR reload, Docker container, Kubernetes workload, microservice deployment, or host restart is involved.
 
+## Phase 2 — AI Builder
+
+Phase 1 implemented the runtime, versioning, capability bridge, security boundary, administration UI and dynamic renderer.
+
+The active development phase is now **AI Builder**:
+
+```text
+Natural language requirement
+    |
+    v
+AI Builder
+    |
+    +-- Harness SDK contract
+    +-- available capabilities
+    +-- current app/draft
+    |
+    v
+Generated Harness script
+    |
+    v
+Validate -> Preview -> Explicit Publish
+    |
+    v
+Existing Harness Runtime
+```
+
+The intended user experience becomes:
+
+> Describe the business page you want, let AI author the Harness script, preview it, ask for changes, then publish it into RuoYi.
+
+AI Builder is an authoring layer only. Published applications continue to run independently of any LLM provider.
+
+See [`docs/PHASE2_AI_BUILDER.md`](./docs/PHASE2_AI_BUILDER.md) for the complete Phase 2 development specification.
+
 ## Design boundaries
 
 RuoYi Harness is intentionally **not**:
@@ -71,6 +105,7 @@ RuoYi Harness is intentionally **not**:
 - arbitrary server-side JavaScript execution
 - a general-purpose low-code operating system
 - a replacement for RuoYi authentication/RBAC
+- an autonomous enterprise Agent OS
 
 RuoYi remains responsible for identity, permissions, business services and persistence. Scripts are untrusted and can access host functionality only through a typed, permission-checked Capability Bridge.
 
@@ -83,7 +118,7 @@ RuoYi remains responsible for identity, permissions, business services and persi
 - **RuoYi-native security** — existing users, roles and permissions remain authoritative.
 - **Immutable versions** — published versions never mutate; publication is a pointer switch.
 - **Auditable execution** — every script execution and capability call carries a trace ID.
-- **AI-friendly, AI-independent** — coding agents/LLMs can generate scripts, but runtime execution does not depend on an LLM.
+- **AI-authored, runtime-independent** — AI can generate/edit scripts, while normal runtime execution remains independent of an LLM.
 
 ## Architecture documents
 
@@ -93,29 +128,32 @@ Coding agents should start with [`AGENTS.md`](./AGENTS.md), then read:
 2. [`docs/SCRIPT_RUNTIME.md`](./docs/SCRIPT_RUNTIME.md) — JavaScript runtime, SDK and action model.
 3. [`docs/API_CONTRACT.md`](./docs/API_CONTRACT.md) — HTTP APIs, capability contract, UI schema and persistence model.
 4. [`docs/SECURITY.md`](./docs/SECURITY.md) — sandbox and permission threat model.
-5. [`docs/DEVELOPMENT_SPEC.md`](./docs/DEVELOPMENT_SPEC.md) — complete implementation and acceptance specification.
+5. [`docs/DEVELOPMENT_SPEC.md`](./docs/DEVELOPMENT_SPEC.md) — Phase 1 implementation and acceptance specification.
+6. [`docs/PHASE2_AI_BUILDER.md`](./docs/PHASE2_AI_BUILDER.md) — active AI Builder implementation specification.
 
-## Target implementation shape
+## Current implementation shape
 
 ```text
 ruoyi-harness/
 ├─ AGENTS.md
 ├─ docs/
-├─ harness-backend/
+├─ RuoYi-Vue/
 │  ├─ harness-api/
 │  ├─ harness-core/
 │  ├─ harness-runtime/
 │  ├─ harness-capability/
 │  └─ harness-ruoyi-adapter/
+├─ RuoYi-Vue3/
 ├─ harness-ui/
 │  ├─ renderer/
 │  ├─ runtime-client/
 │  └─ admin/
+├─ contracts/
 └─ examples/
    └─ customer-app/
 ```
 
-Recommended JavaScript implementation is GraalVM Polyglot JavaScript behind an engine abstraction. The final implementation must prove sandbox restrictions with security regression tests rather than relying only on configuration.
+Phase 2 adds an isolated `harness-ai` authoring module and AI Builder UI. It must not make `harness-runtime` depend on an LLM provider.
 
 ## Running the implementation
 
@@ -138,6 +176,24 @@ npm test
 npm run build
 ```
 
-## Completion criterion
+## Product completion direction
 
-The architecture is complete when one running RuoYi instance can create a script app, validate it, publish it, render its page, invoke permission-checked Spring capabilities, publish a new version, hot-switch new users to it, roll back to an earlier immutable version, and audit the entire flow — without restarting the host.
+The product is moving from:
+
+```text
+Developer writes Harness JavaScript
+    -> Runtime
+    -> Dynamic RuoYi app
+```
+
+to:
+
+```text
+User describes software
+    -> AI Builder writes Harness JavaScript
+    -> Validate / Preview / Publish
+    -> Runtime
+    -> Dynamic RuoYi app
+```
+
+The runtime remains intentionally small. AI changes how applications are authored, not the security or execution model.
