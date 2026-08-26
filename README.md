@@ -1,68 +1,122 @@
 # RuoYi Harness
 
-> Agent-native enterprise application runtime based on RuoYi ecosystem.
+> Hot-loadable script applications for the RuoYi ecosystem.
 
-## Vision
+RuoYi Harness turns a normal RuoYi application into a host for **runtime-loadable business pages and workflows implemented as restricted JavaScript scripts**.
 
-RuoYi Harness is an experimental framework that transforms traditional enterprise applications into AI-agent-operable systems.
+The host remains a normal single RuoYi deployment. Dynamic applications are stored as versioned script data and can be created, validated, published, updated, disabled and rolled back **without restarting the JVM and without rebuilding the frontend**.
 
-Instead of users operating software through fixed menus, agents can understand business goals and safely execute enterprise capabilities through a controlled runtime.
+## What it is
 
-## Architecture
-
-```
+```text
 User
   |
-Natural Language Goal
+  v
+RuoYi Web Shell
   |
-Agent Runtime
+  v
+Dynamic App Renderer
   |
-Harness Layer
-  |-- Tool Registry
-  |-- Permission Control
-  |-- Workflow Engine
-  |-- Audit & Rollback
+  v
+Harness Script Runtime
   |
-RuoYi Business Runtime
+  +---- restricted JavaScript
   |
-Database / APIs
+  v
+Capability Bridge
+  |
+  v
+RuoYi / Spring Business Services
+  |
+  v
+Database
 ```
 
-## Core Concepts
+A script can compose approved UI components and call explicitly exported host capabilities:
 
-### Tool Registry
+```javascript
+export default defineApp({
+  page: async () => {
+    const customers = await harness.call("crm.customer.search", {
+      page: 1,
+      size: 20
+    });
 
-Expose business capabilities as structured tools for agents.
+    return page({
+      title: "Customers",
+      children: [
+        table({
+          id: "customers",
+          rows: customers.items,
+          columns: [
+            { key: "name", label: "Name" },
+            { key: "level", label: "Level" }
+          ]
+        })
+      ]
+    });
+  }
+});
+```
 
-Examples:
+Publishing a new script version changes subsequent page loads immediately. No JAR reload, Docker container, Kubernetes workload, microservice deployment, or host restart is involved.
 
-- query_customer
-- create_order
-- start_workflow
-- generate_report
+## Design boundaries
 
-### Metadata Driven Development
+RuoYi Harness is intentionally **not**:
 
-Business requirements can be converted into:
+- a Spring Cloud microservice platform
+- Docker/Kubernetes orchestration
+- an OSGi/PF4J dynamic JAR loader
+- arbitrary server-side JavaScript execution
+- a general-purpose low-code operating system
+- a replacement for RuoYi authentication/RBAC
 
-- database schema
-- API definitions
-- permissions
-- UI components
+RuoYi remains responsible for identity, permissions, business services and persistence. Scripts are untrusted and can access host functionality only through a typed, permission-checked Capability Bridge.
 
-### Human-in-the-loop
+## Core properties
 
-High-risk operations require approval before execution.
+- **Hot publication** — publish/update/rollback scripts without host restart.
+- **Restricted runtime** — JavaScript runs in a deny-by-default sandbox.
+- **Declarative UI** — scripts return validated JSON page definitions rendered by Vue.
+- **Typed capabilities** — Spring services are exposed through explicit schemas and permissions.
+- **RuoYi-native security** — existing users, roles and permissions remain authoritative.
+- **Immutable versions** — published versions never mutate; publication is a pointer switch.
+- **Auditable execution** — every script execution and capability call carries a trace ID.
+- **AI-friendly, AI-independent** — coding agents/LLMs can generate scripts, but runtime execution does not depend on an LLM.
 
-## Roadmap
+## Architecture documents
 
-- [ ] Project architecture design
-- [ ] Agent runtime prototype
-- [ ] Tool registry
-- [ ] MCP integration
-- [ ] RuoYi integration
-- [ ] AI generated business modules
+Coding agents should start with [`AGENTS.md`](./AGENTS.md), then read:
 
-## Status
+1. [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — final system boundaries and request flow.
+2. [`docs/SCRIPT_RUNTIME.md`](./docs/SCRIPT_RUNTIME.md) — JavaScript runtime, SDK and action model.
+3. [`docs/API_CONTRACT.md`](./docs/API_CONTRACT.md) — HTTP APIs, capability contract, UI schema and persistence model.
+4. [`docs/SECURITY.md`](./docs/SECURITY.md) — sandbox and permission threat model.
+5. [`docs/DEVELOPMENT_SPEC.md`](./docs/DEVELOPMENT_SPEC.md) — complete implementation and acceptance specification.
 
-Early research and prototype stage.
+## Target implementation shape
+
+```text
+ruoyi-harness/
+├─ AGENTS.md
+├─ docs/
+├─ harness-backend/
+│  ├─ harness-api/
+│  ├─ harness-core/
+│  ├─ harness-runtime/
+│  ├─ harness-capability/
+│  └─ harness-ruoyi-adapter/
+├─ harness-ui/
+│  ├─ renderer/
+│  ├─ runtime-client/
+│  └─ admin/
+└─ examples/
+   └─ customer-app/
+```
+
+Recommended JavaScript implementation is GraalVM Polyglot JavaScript behind an engine abstraction. The final implementation must prove sandbox restrictions with security regression tests rather than relying only on configuration.
+
+## Completion criterion
+
+The architecture is complete when one running RuoYi instance can create a script app, validate it, publish it, render its page, invoke permission-checked Spring capabilities, publish a new version, hot-switch new users to it, roll back to an earlier immutable version, and audit the entire flow — without restarting the host.
