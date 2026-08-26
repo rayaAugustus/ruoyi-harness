@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.harness.adapter.mapper.HarnessExecutionLogMapper">
+  <resultMap id="Log" type="com.ruoyi.harness.core.domain.ExecutionLog">
+    <id property="id" column="id"/><result property="traceId" column="trace_id"/><result property="requestId" column="request_id"/><result property="appId" column="app_id"/>
+    <result property="appVersionId" column="app_version_id"/><result property="userId" column="user_id"/><result property="entryType" column="entry_type"/><result property="entryName" column="entry_name"/>
+    <result property="status" column="status"/><result property="startedAt" column="started_at"/><result property="finishedAt" column="finished_at"/><result property="elapsedMs" column="elapsed_ms"/>
+    <result property="capabilityCalls" column="capability_calls"/><result property="errorCode" column="error_code"/><result property="errorSummary" column="error_summary"/>
+  </resultMap>
+  <insert id="insert" parameterType="com.ruoyi.harness.core.domain.ExecutionLog" useGeneratedKeys="true" keyProperty="id">
+    insert into harness_execution_log(trace_id,request_id,app_id,app_version_id,user_id,entry_type,entry_name,status,started_at,finished_at,elapsed_ms,capability_calls,error_code,error_summary)
+    values(#{traceId},#{requestId},#{appId},#{appVersionId},#{userId},#{entryType},#{entryName},#{status},#{startedAt},#{finishedAt},#{elapsedMs},#{capabilityCalls},#{errorCode},#{errorSummary})
+  </insert>
+  <select id="search" resultMap="Log">select * from harness_execution_log <where>
+    <if test="traceId != null and traceId != ''">and trace_id=#{traceId}</if><if test="appId != null">and app_id=#{appId}</if><if test="versionId != null">and app_version_id=#{versionId}</if>
+    <if test="userId != null">and user_id=#{userId}</if><if test="status != null and status != ''">and status=#{status}</if><if test="from != null">and started_at &gt;=#{from}</if><if test="to != null">and started_at &lt;=#{to}</if>
+  </where> order by id desc limit 1000</select>
+</mapper>

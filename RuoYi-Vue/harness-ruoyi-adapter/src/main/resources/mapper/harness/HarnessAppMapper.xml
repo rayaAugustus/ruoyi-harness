@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.harness.adapter.mapper.HarnessAppMapper">
+  <resultMap id="App" type="com.ruoyi.harness.core.domain.HarnessApp">
+    <id property="id" column="id"/><result property="appKey" column="app_key"/><result property="name" column="name"/>
+    <result property="description" column="description"/><result property="routeTitle" column="route_title"/><result property="icon" column="icon"/>
+    <result property="orderNum" column="order_num"/><result property="requiredPermission" column="required_permission"/><result property="enabled" column="enabled"/>
+    <result property="publishedVersionId" column="published_version_id"/><result property="createdBy" column="created_by"/><result property="createdAt" column="created_at"/>
+    <result property="updatedBy" column="updated_by"/><result property="updatedAt" column="updated_at"/>
+  </resultMap>
+  <sql id="columns">id,app_key,name,description,route_title,icon,order_num,required_permission,enabled,published_version_id,created_by,created_at,updated_by,updated_at</sql>
+  <select id="findByKey" resultMap="App">select <include refid="columns"/> from harness_app where app_key=#{appKey}</select>
+  <select id="findById" resultMap="App">select <include refid="columns"/> from harness_app where id=#{id}</select>
+  <select id="findAll" resultMap="App">select <include refid="columns"/> from harness_app order by order_num,id</select>
+  <insert id="insert" parameterType="com.ruoyi.harness.core.domain.HarnessApp" useGeneratedKeys="true" keyProperty="id">
+    insert into harness_app(app_key,name,description,route_title,icon,order_num,required_permission,enabled,created_by,created_at,updated_by,updated_at)
+    values(#{appKey},#{name},#{description},#{routeTitle},#{icon},#{orderNum},#{requiredPermission},#{enabled},#{createdBy},#{createdAt},#{updatedBy},#{updatedAt})
+  </insert>
+  <update id="update">update harness_app set name=#{name},description=#{description},route_title=#{routeTitle},icon=#{icon},order_num=#{orderNum},required_permission=#{requiredPermission},updated_by=#{updatedBy},updated_at=#{updatedAt} where id=#{id}</update>
+  <update id="setEnabled">update harness_app set enabled=#{enabled},updated_by=#{actorId},updated_at=current_timestamp where id=#{id}</update>
+  <update id="setPublishedVersion">update harness_app set published_version_id=#{versionId},updated_by=#{actorId},updated_at=current_timestamp where id=#{id}</update>
+</mapper>

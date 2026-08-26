@@ -35,7 +35,7 @@ Database
 A script can compose approved UI components and call explicitly exported host capabilities:
 
 ```javascript
-export default defineApp({
+defineApp({
   page: async () => {
     const customers = await harness.call("crm.customer.search", {
       page: 1,
@@ -116,6 +116,27 @@ ruoyi-harness/
 ```
 
 Recommended JavaScript implementation is GraalVM Polyglot JavaScript behind an engine abstraction. The final implementation must prove sandbox restrictions with security regression tests rather than relying only on configuration.
+
+## Running the implementation
+
+1. Import the normal RuoYi schema, then import [`RuoYi-Vue/sql/harness.sql`](./RuoYi-Vue/sql/harness.sql). The latter creates the immutable app/version stores, both audit stores, and the Harness administration permissions/menu.
+2. Configure the existing RuoYi datasource and Redis settings. Harness settings are under `harness` in `ruoyi-admin/src/main/resources/application.yml`; the default runtime is GraalJS and can be disabled as a unit with `harness.enabled=false`.
+3. Build or run the host from `RuoYi-Vue`. `ruoyi-admin` already depends on `harness-ruoyi-adapter`, while the domain, runtime, capability bridge, and RuoYi integration remain separate Maven modules.
+4. Install and run `RuoYi-Vue3`. It is already wired to the shared `harness-ui` source, reuses RuoYi's authenticated Axios transport, and implements every stable backend menu component key under `src/views/harness`.
+
+The concrete script entry style selected by this implementation is the single global `defineApp({...})` registration shown above. ES modules, `require`, host class lookup, filesystem, process, environment, raw networking, threads, and browser DOM access are rejected. See [`examples/customer-app/app.js`](./examples/customer-app/app.js) for an executable example and [`contracts/ui-schema-v1.json`](./contracts/ui-schema-v1.json) for the renderer contract.
+
+Verification commands:
+
+```text
+cd RuoYi-Vue
+mvn test
+
+cd ../harness-ui
+npm ci
+npm test
+npm run build
+```
 
 ## Completion criterion
 

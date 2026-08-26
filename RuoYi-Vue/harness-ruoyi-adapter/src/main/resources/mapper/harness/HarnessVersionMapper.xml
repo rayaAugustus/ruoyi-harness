@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.harness.adapter.mapper.HarnessVersionMapper">
+  <resultMap id="Version" type="com.ruoyi.harness.core.domain.HarnessAppVersion">
+    <id property="id" column="id"/><result property="appId" column="app_id"/><result property="versionNo" column="version_no"/>
+    <result property="sdkVersion" column="sdk_version"/><result property="source" column="source"/><result property="sourceHash" column="source_hash"/>
+    <result property="status" column="status" javaType="com.ruoyi.harness.api.VersionStatus"/><result property="createdBy" column="created_by"/><result property="createdAt" column="created_at"/>
+    <result property="validatedAt" column="validated_at"/><result property="publishedAt" column="published_at"/>
+  </resultMap>
+  <sql id="columns">id,app_id,version_no,sdk_version,source,source_hash,status,created_by,created_at,validated_at,published_at</sql>
+  <select id="findById" resultMap="Version">select <include refid="columns"/> from harness_app_version where id=#{id}</select>
+  <select id="findByAppId" resultMap="Version">select <include refid="columns"/> from harness_app_version where app_id=#{appId} order by version_no desc</select>
+  <select id="nextVersionNo" resultType="long">select coalesce(max(version_no),0)+1 from harness_app_version where app_id=#{appId}</select>
+  <insert id="insert" parameterType="com.ruoyi.harness.core.domain.HarnessAppVersion" useGeneratedKeys="true" keyProperty="id">
+    insert into harness_app_version(app_id,version_no,sdk_version,source,source_hash,status,created_by,created_at)
+    values(#{appId},#{versionNo},#{sdkVersion},#{source},#{sourceHash},#{status},#{createdBy},#{createdAt})
+  </insert>
+  <update id="updateDraftSource">update harness_app_version set source=#{source},source_hash=null,status=#{status},validated_at=null where id=#{id} and status in ('DRAFT','VALIDATED','REJECTED')</update>
+  <update id="updateValidation">update harness_app_version set source_hash=#{sourceHash},status=#{status},validated_at=#{validatedAt} where id=#{id} and status in ('DRAFT','VALIDATED','REJECTED')</update>
+  <update id="updateStatus">update harness_app_version set status=#{status},published_at=#{publishedAt} where id=#{id}</update>
+  <delete id="deleteDraft">delete from harness_app_version where id=#{id} and status in ('DRAFT','REJECTED')</delete>
+</mapper>

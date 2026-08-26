@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ruoyi.example/harness/ui/v1/page.schema.json",
+  "title": "RuoYi Harness SDK v1 Page Definition",
+  "$ref": "#/$defs/page",
+  "$defs": {
+    "action": {"type":"object","required":["name"],"additionalProperties":false,"properties":{"name":{"type":"string","pattern":"^[A-Za-z][A-Za-z0-9_]{0,63}$"},"input":{}}},
+    "base": {"type":"object","required":["type"],"properties":{"type":{"type":"string"},"id":{"type":"string","maxLength":128}}},
+    "page": {"type":"object","required":["type","title","children"],"additionalProperties":false,"properties":{"type":{"const":"page"},"id":{"type":"string"},"title":{"type":"string"},"children":{"type":"array","items":{"$ref":"#/$defs/component"}}}},
+    "section": {"type":"object","required":["type","children"],"additionalProperties":false,"properties":{"type":{"const":"section"},"id":{"type":"string"},"title":{"type":"string"},"children":{"type":"array","items":{"$ref":"#/$defs/component"}}}},
+    "text": {"type":"object","required":["type","value"],"additionalProperties":false,"properties":{"type":{"const":"text"},"id":{"type":"string"},"value":{"type":["string","number","boolean"]},"variant":{"enum":["body","muted","title","code"]}}},
+    "statistic": {"type":"object","required":["type","label","value"],"additionalProperties":false,"properties":{"type":{"const":"statistic"},"id":{"type":"string"},"label":{"type":"string"},"value":{},"suffix":{"type":"string"}}},
+    "table": {"type":"object","required":["type","columns","rows"],"additionalProperties":false,"properties":{"type":{"const":"table"},"id":{"type":"string"},"columns":{"type":"array","items":{"type":"object","required":["key","label"],"additionalProperties":false,"properties":{"key":{"type":"string"},"label":{"type":"string"}}}},"rows":{"type":"array","maxItems":1000,"items":{"type":"object"}},"emptyText":{"type":"string"}}},
+    "form": {"type":"object","required":["type","id","fields"],"additionalProperties":false,"properties":{"type":{"const":"form"},"id":{"type":"string"},"fields":{"type":"array","items":{"oneOf":[{"$ref":"#/$defs/input"},{"$ref":"#/$defs/select"}]}},"children":{"type":"array","items":{"$ref":"#/$defs/component"}}}},
+    "input": {"type":"object","required":["type","name","label"],"additionalProperties":false,"properties":{"type":{"const":"input"},"id":{"type":"string"},"name":{"type":"string"},"label":{"type":"string"},"value":{},"placeholder":{"type":"string"},"required":{"type":"boolean"},"inputType":{"enum":["text","number","password","date"]}}},
+    "select": {"type":"object","required":["type","name","label","options"],"additionalProperties":false,"properties":{"type":{"const":"select"},"id":{"type":"string"},"name":{"type":"string"},"label":{"type":"string"},"value":{},"required":{"type":"boolean"},"options":{"type":"array","items":{"type":"object","required":["label","value"],"additionalProperties":false,"properties":{"label":{"type":"string"},"value":{}}}}}},
+    "button": {"type":"object","required":["type","text"],"additionalProperties":false,"properties":{"type":{"const":"button"},"id":{"type":"string"},"text":{"type":"string"},"variant":{"enum":["primary","default","danger","text"]},"disabled":{"type":"boolean"},"action":{"$ref":"#/$defs/action"}}},
+    "tabs": {"type":"object","required":["type","items"],"additionalProperties":false,"properties":{"type":{"const":"tabs"},"id":{"type":"string"},"items":{"type":"array","items":{"type":"object","required":["label","children"],"additionalProperties":false,"properties":{"label":{"type":"string"},"children":{"type":"array","items":{"$ref":"#/$defs/component"}}}}}}},
+    "modal": {"type":"object","required":["type","title","children"],"additionalProperties":false,"properties":{"type":{"const":"modal"},"id":{"type":"string"},"title":{"type":"string"},"open":{"type":"boolean"},"children":{"type":"array","items":{"$ref":"#/$defs/component"}}}},
+    "alert": {"type":"object","required":["type","message"],"additionalProperties":false,"properties":{"type":{"const":"alert"},"id":{"type":"string"},"title":{"type":"string"},"message":{"type":"string"},"variant":{"enum":["info","success","warning","error"]}}},
+    "chart": {"type":"object","required":["type","chartType","series"],"additionalProperties":false,"properties":{"type":{"const":"chart"},"id":{"type":"string"},"chartType":{"enum":["bar","line","pie"]},"title":{"type":"string"},"labels":{"type":"array","items":{"type":"string"}},"series":{"type":"array"}}},
+    "component": {"oneOf":[{"$ref":"#/$defs/section"},{"$ref":"#/$defs/text"},{"$ref":"#/$defs/statistic"},{"$ref":"#/$defs/table"},{"$ref":"#/$defs/form"},{"$ref":"#/$defs/input"},{"$ref":"#/$defs/select"},{"$ref":"#/$defs/button"},{"$ref":"#/$defs/tabs"},{"$ref":"#/$defs/modal"},{"$ref":"#/$defs/alert"},{"$ref":"#/$defs/chart"}]}
+  }
+}

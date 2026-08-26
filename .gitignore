@@ -1,0 +1,10 @@
+harness-ui/node_modules/
+harness-ui/dist/
+harness-ui/coverage/
+harness-ui/.vite/
+RuoYi-Vue3/node_modules/
+RuoYi-Vue3/dist/
+RuoYi-Vue3/.git.vendor-backup/
+RuoYi-Vue/.git.vendor-backup/
+**/target/
+*.log

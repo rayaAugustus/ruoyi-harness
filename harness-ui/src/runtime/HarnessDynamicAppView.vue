@@ -1,0 +1,9 @@
+<script setup lang="ts">
+import {onMounted,reactive,ref,watch} from 'vue';import HarnessRenderer from '../renderer/HarnessRenderer.vue';import {harnessApi} from '../runtime-client/api';import type {ActionBinding,Json,PageNode} from '../types';
+const props=defineProps<{appKey:string;routeState?:Json}>();const page=ref<PageNode>();const versionId=ref<number>();const loading=ref(false);const error=ref('');const toast=ref('');const state=reactive<Record<string,any>>({});
+const load=async()=>{loading.value=true;error.value='';try{const response=await harnessApi.render(props.appKey,props.routeState||{},state);page.value=response.page;versionId.value=response.versionId}catch(e:any){error.value=e?.message||'Unable to render application'}finally{loading.value=false}};
+const resolveInput=(value:any):any=>{if(value&&typeof value==='object'&&!Array.isArray(value)&&typeof value.source==='string'&&value.source.startsWith('form.'))return state[value.source.slice(5)]||{};if(Array.isArray(value))return value.map(resolveInput);if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,resolveInput(v)]));return value};
+const act=async(action:ActionBinding)=>{if(!versionId.value)return;try{const response=await harnessApi.action(props.appKey,action,versionId.value,resolveInput(action.input||{}),state);if(response.page)page.value=response.page;if(response.effects?.toast)toast.value=response.effects.toast.message;if(response.effects?.refresh?.length)await load()}catch(e:any){error.value=e?.message||'Action failed'}};
+onMounted(load);watch(()=>props.appKey,load);
+</script>
+<template><div class="harness-app-view"><p v-if="loading">Loading…</p><div v-else-if="error" role="alert" class="harness-error">{{error}}</div><div v-if="toast" role="status">{{toast}}</div><HarnessRenderer v-if="page" :page="page" :state="state" @action="act"/></div></template>
