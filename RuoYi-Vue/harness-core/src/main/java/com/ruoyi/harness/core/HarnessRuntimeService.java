@@ -23,7 +23,8 @@ public class HarnessRuntimeService {
     public RuntimeDescriptor resolve(String appKey,RuntimeIdentity identity){HarnessApp app=authorizedApp(appKey,identity); HarnessAppVersion v=published(app);
         return new RuntimeDescriptor(app.getAppKey(),app.getName(),v.getId(),v.getVersionNo(),v.getSdkVersion(),true,etag(v));}
     public RuntimeResponse render(String appKey,RenderRequest request,RuntimeIdentity identity,String requestId,String locale){
-        HarnessApp app=authorizedApp(appKey,identity); HarnessAppVersion v=published(app); ObjectNode input=mapper.createObjectNode();
+        HarnessApp app=authorizedApp(appKey,identity); HarnessAppVersion v=request!=null&&request.versionId()!=null
+                ? pinned(app,request.versionId()):published(app); ObjectNode input=mapper.createObjectNode();
         input.set("route",request==null||request.route()==null?mapper.createObjectNode():request.route()); input.set("state",request==null||request.state()==null?mapper.createObjectNode():request.state());
         ExecutionOutcome outcome=execute(app,v,"PAGE","page",input,mapper.createObjectNode(),identity,requestId,locale);
         return new RuntimeResponse(appKey,v.getId(),outcome.traceId(),outcome.result().value(),null);
@@ -51,6 +52,8 @@ public class HarnessRuntimeService {
     private HarnessApp authorizedApp(String appKey,RuntimeIdentity identity){HarnessApp app=appService.requireEntity(appKey);if(!Boolean.TRUE.equals(app.getEnabled()))throw new HarnessException(HarnessErrorCode.APP_DISABLED,"Application is disabled");
         if(!access.isAllowed(app.getRequiredPermission(),identity))throw new HarnessException(HarnessErrorCode.APP_ACCESS_DENIED,"Application access denied");return app;}
     private HarnessAppVersion published(HarnessApp app){if(app.getPublishedVersionId()==null)throw new HarnessException(HarnessErrorCode.APP_VERSION_NOT_FOUND,"Application has no published version");return versionService.requireEntity(app,app.getPublishedVersionId());}
+    private HarnessAppVersion pinned(HarnessApp app,Long versionId){HarnessAppVersion v=versionService.requireEntity(app,versionId);
+        if(v.getStatus()!=VersionStatus.PUBLISHED&&v.getStatus()!=VersionStatus.SUPERSEDED)throw new HarnessException(HarnessErrorCode.APP_VERSION_NOT_FOUND,"Pinned version is not executable");return v;}
     private ScriptArtifact cachedArtifact(HarnessApp app,HarnessAppVersion version){ScriptArtifact artifact=cache.get(app.getAppKey(),version.getId());if(artifact==null){artifact=VersionService.artifact(app,version);cache.put(artifact);}return artifact;}
     private static void verifyHash(ScriptArtifact artifact){try{String actual="sha256:"+HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(artifact.source().getBytes(StandardCharsets.UTF_8)));if(artifact.sourceHash()==null||!actual.equals(artifact.sourceHash()))throw new HarnessException(HarnessErrorCode.SCRIPT_VALIDATION_ERROR,"Published source integrity check failed");}catch(HarnessException e){throw e;}catch(Exception e){throw new IllegalStateException(e);}}
     private static String etag(HarnessAppVersion v){return "\""+v.getId()+":"+v.getSourceHash()+"\"";}

@@ -7,4 +7,5 @@ export {default as HarnessApplicationDetailView} from './admin/ApplicationDetail
 export {default as HarnessScriptEditorView} from './admin/ScriptEditorView.vue';
 export {default as HarnessExecutionLogsView} from './admin/ExecutionLogsView.vue';
 export {default as HarnessCapabilitiesView} from './admin/CapabilitiesView.vue';
+export {default as AiBuilderView} from './ai/AiBuilderView.vue';
 export * from './runtime-client/api';export * from './types';

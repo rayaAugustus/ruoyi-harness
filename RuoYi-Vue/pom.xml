@@ -195,6 +195,11 @@
             </dependency>
             <dependency>
                 <groupId>com.ruoyi</groupId>
+                <artifactId>harness-ai</artifactId>
+                <version>${ruoyi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ruoyi</groupId>
                 <artifactId>harness-ruoyi-adapter</artifactId>
                 <version>${ruoyi.version}</version>
             </dependency>
@@ -213,6 +218,7 @@
         <module>harness-capability</module>
         <module>harness-runtime</module>
         <module>harness-core</module>
+        <module>harness-ai</module>
         <module>harness-ruoyi-adapter</module>
     </modules>
     <packaging>pom</packaging>

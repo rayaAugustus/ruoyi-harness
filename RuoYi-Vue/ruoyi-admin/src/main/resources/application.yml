@@ -165,3 +165,16 @@ harness:
     enabled: true
   audit:
     enabled: true
+  ai:
+    enabled: ${HARNESS_AI_ENABLED:false}
+    provider: openai-compatible
+    base-url: ${HARNESS_AI_BASE_URL:}
+    api-key: ${HARNESS_AI_API_KEY:}
+    model: ${HARNESS_AI_MODEL:}
+    temperature: 0.2
+    max-output-tokens: 12000
+    connect-timeout: 10s
+    read-timeout: 120s
+    max-repair-attempts: 2
+    max-context-capabilities: 100
+    max-context-bytes: 1500000

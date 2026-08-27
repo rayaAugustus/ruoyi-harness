@@ -20,6 +20,11 @@ public class AppRegistryService {
         if (app == null) throw new HarnessException(HarnessErrorCode.APP_NOT_FOUND, "Application not found");
         return app;
     }
+    HarnessApp requireLockedEntity(String appKey) {
+        HarnessApp app = apps.findByKeyForUpdate(appKey);
+        if (app == null) throw new HarnessException(HarnessErrorCode.APP_NOT_FOUND, "Application not found");
+        return app;
+    }
 
     @Transactional
     public AppDescriptor create(AppMutation request, Long actorId) {

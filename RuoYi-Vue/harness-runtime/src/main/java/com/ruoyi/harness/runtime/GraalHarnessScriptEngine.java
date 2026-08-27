@@ -108,8 +108,7 @@ public final class GraalHarnessScriptEngine implements HarnessScriptEngine {
         } catch (PolyglotException e) {
             if (e.isCancelled()) throw new HarnessException(HarnessErrorCode.SCRIPT_TIMEOUT, "Script execution timed out", e);
             if (e.isHostException() && e.asHostException() instanceof HarnessException he) throw he;
-            HarnessErrorCode code = e.getMessage() != null && e.getMessage().contains("ACTION_NOT_FOUND")
-                    ? HarnessErrorCode.ACTION_NOT_FOUND : HarnessErrorCode.SCRIPT_RUNTIME_ERROR;
+            HarnessErrorCode code = mapGuestError(e.getMessage());
             throw new HarnessException(code, "Script execution failed", e);
         } finally { active.set(null); }
     }
@@ -134,7 +133,15 @@ public final class GraalHarnessScriptEngine implements HarnessScriptEngine {
             String name = args[0].asString(); JsonNode request = mapper.readTree(args[1].asString());
             CapabilityContext ctx = new CapabilityContext(execution.identity().userId(), execution.identity().username(),
                     execution.identity().permissions(), artifact.appKey(), artifact.id(), execution.requestId(), execution.traceId());
-            return mapper.writeValueAsString(execution.capabilityInvoker().invoke(name, request, ctx));
+            try {
+                var envelope = mapper.createObjectNode(); envelope.put("ok", true);
+                envelope.set("value", execution.capabilityInvoker().invoke(name, request, ctx));
+                return mapper.writeValueAsString(envelope);
+            } catch (HarnessException e) {
+                // Cross the guest boundary as data so Promise rejection keeps the stable code without host details.
+                var envelope = mapper.createObjectNode(); envelope.put("ok", false); envelope.put("code", e.getCode().name());
+                return mapper.writeValueAsString(envelope);
+            }
         });
         bindings.putMember("__hostLog", (ProxyExecutable) args -> {
             if (logs.incrementAndGet() > limits.maxLogEvents()) throw new HarnessException(HarnessErrorCode.LOG_LIMIT_EXCEEDED, "Log event limit exceeded");
@@ -176,6 +183,8 @@ public final class GraalHarnessScriptEngine implements HarnessScriptEngine {
     private static String safeMessage(Throwable error) { return error instanceof HarnessException ? error.getMessage() : "Script execution failed"; }
     private static HarnessErrorCode mapGuestError(String message) {
         if (message != null && message.contains("ACTION_NOT_FOUND")) return HarnessErrorCode.ACTION_NOT_FOUND;
+        if (message != null) for (HarnessErrorCode code : HarnessErrorCode.values())
+            if (message.contains(code.name())) return code;
         return HarnessErrorCode.SCRIPT_RUNTIME_ERROR;
     }
 
@@ -190,7 +199,7 @@ public final class GraalHarnessScriptEngine implements HarnessScriptEngine {
         globalThis.input=component('input');globalThis.select=component('select');globalThis.button=component('button');
         globalThis.tabs=component('tabs');globalThis.modal=component('modal');globalThis.alert=component('alert');globalThis.chart=component('chart');
         const ctx=deepFreeze(JSON.parse(__contextJson));
-        globalThis.harness=deepFreeze({context:ctx,call:(name,input)=>JSON.parse(__hostCall(String(name),JSON.stringify(input||{}))),
+        globalThis.harness=deepFreeze({context:ctx,call:(name,input)=>{const r=JSON.parse(__hostCall(String(name),JSON.stringify(input||{})));if(!r.ok)throw new Error(r.code);return r.value;},
           log:{debug:(...a)=>__hostLog('debug'),info:(...a)=>__hostLog('info'),warn:(...a)=>__hostLog('warn'),error:(...a)=>__hostLog('error')}});
         """;
 

@@ -35,7 +35,7 @@ public class HarnessAdminController {
     @DeleteMapping("/apps/{key}/versions/{id}") @PreAuthorize("@ss.hasPermi('harness:app:edit')") public AjaxResult delete(@PathVariable String key,@PathVariable Long id){versions.deleteDraft(key,id);return AjaxResult.success();}
     @GetMapping("/audit/executions") @PreAuthorize("@ss.hasPermi('harness:audit:view')") public AjaxResult executions(@RequestParam Map<String,Object> filters){return AjaxResult.success(executionLogs.search(filters));}
     @GetMapping("/audit/capabilities") @PreAuthorize("@ss.hasPermi('harness:audit:view')") public AjaxResult capabilityLogs(@RequestParam Map<String,Object> filters){return AjaxResult.success(capabilityLogs.search(filters));}
-    @GetMapping("/capabilities") @PreAuthorize("@ss.hasPermi('harness:app:list')") public AjaxResult capabilities(){return AjaxResult.success(capabilities.list().stream().map(d->new CapabilityView(d.name(),d.version(),d.description(),d.inputSchema(),d.outputSchema(),d.requiredPermission(),d.riskLevel())).toList());}
+    @GetMapping("/capabilities") @PreAuthorize("@ss.hasPermi('harness:app:list') or @ss.hasPermi('harness:ai:use')") public AjaxResult capabilities(){return AjaxResult.success(capabilities.list().stream().map(d->new CapabilityView(d.name(),d.version(),d.description(),d.inputSchema(),d.outputSchema(),d.requiredPermission(),d.riskLevel())).toList());}
     public record VersionMutation(String sdkVersion,String source){}
     public record CapabilityView(String name,String version,String description,tools.jackson.databind.JsonNode inputSchema,tools.jackson.databind.JsonNode outputSchema,String requiredPermission,RiskLevel riskLevel){}
 }

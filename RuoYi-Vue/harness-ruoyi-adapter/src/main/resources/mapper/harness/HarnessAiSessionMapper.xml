@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.harness.adapter.mapper.HarnessAiSessionMapper">
+  <resultMap id="Session" type="com.ruoyi.harness.ai.model.AiSession">
+    <id property="id" column="id"/><result property="sessionKey" column="session_key"/><result property="appId" column="app_id"/><result property="activeVersionId" column="active_version_id"/>
+    <result property="createdBy" column="created_by"/><result property="createdAt" column="created_at"/><result property="updatedAt" column="updated_at"/><result property="title" column="title"/><result property="status" column="status"/>
+  </resultMap>
+  <sql id="columns">id,session_key,app_id,active_version_id,created_by,created_at,updated_at,title,status</sql>
+  <select id="findByKey" resultMap="Session">select <include refid="columns"/> from harness_ai_session where session_key=#{sessionKey}</select>
+  <select id="findByCreatedBy" resultMap="Session">select <include refid="columns"/> from harness_ai_session where created_by=#{createdBy} order by updated_at desc</select>
+  <insert id="insert" parameterType="com.ruoyi.harness.ai.model.AiSession" useGeneratedKeys="true" keyProperty="id">insert into harness_ai_session(session_key,app_id,active_version_id,created_by,created_at,updated_at,title,status) values(#{sessionKey},#{appId},#{activeVersionId},#{createdBy},#{createdAt},#{updatedAt},#{title},#{status})</insert>
+  <update id="updateLink">update harness_ai_session set app_id=#{appId},active_version_id=#{activeVersionId},updated_at=#{updatedAt} where id=#{id} and status='ACTIVE'</update>
+  <update id="archive">update harness_ai_session set status='ARCHIVED',updated_at=#{updatedAt} where id=#{id}</update>
+</mapper>

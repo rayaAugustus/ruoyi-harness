@@ -5,6 +5,7 @@
     <artifactId>harness-ruoyi-adapter</artifactId>
     <dependencies>
         <dependency><groupId>com.ruoyi</groupId><artifactId>harness-core</artifactId></dependency>
+        <dependency><groupId>com.ruoyi</groupId><artifactId>harness-ai</artifactId></dependency>
         <dependency><groupId>com.ruoyi</groupId><artifactId>ruoyi-framework</artifactId></dependency>
         <dependency><groupId>org.mybatis.spring.boot</groupId><artifactId>mybatis-spring-boot-starter</artifactId></dependency>
         <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>${junit.version}</version><scope>test</scope></dependency>

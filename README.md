@@ -142,12 +142,14 @@ ruoyi-harness/
 │  ├─ harness-core/
 │  ├─ harness-runtime/
 │  ├─ harness-capability/
+│  ├─ harness-ai/
 │  └─ harness-ruoyi-adapter/
 ├─ RuoYi-Vue3/
 ├─ harness-ui/
 │  ├─ renderer/
 │  ├─ runtime-client/
-│  └─ admin/
+│  ├─ admin/
+│  └─ ai/
 ├─ contracts/
 └─ examples/
    └─ customer-app/
@@ -161,6 +163,17 @@ Phase 2 adds an isolated `harness-ai` authoring module and AI Builder UI. It mus
 2. Configure the existing RuoYi datasource and Redis settings. Harness settings are under `harness` in `ruoyi-admin/src/main/resources/application.yml`; the default runtime is GraalJS and can be disabled as a unit with `harness.enabled=false`.
 3. Build or run the host from `RuoYi-Vue`. `ruoyi-admin` already depends on `harness-ruoyi-adapter`, while the domain, runtime, capability bridge, and RuoYi integration remain separate Maven modules.
 4. Install and run `RuoYi-Vue3`. It is already wired to the shared `harness-ui` source, reuses RuoYi's authenticated Axios transport, and implements every stable backend menu component key under `src/views/harness`.
+
+AI Builder is disabled until a provider is configured. Credentials remain server-side:
+
+```text
+HARNESS_AI_ENABLED=true
+HARNESS_AI_BASE_URL=https://provider.example/v1
+HARNESS_AI_API_KEY=...
+HARNESS_AI_MODEL=...
+```
+
+The initial adapter uses the OpenAI-compatible chat-completions contract. Its response must be strict JSON containing `assistantMessage`, `script`, and `capabilitiesUsed`. Importing `harness.sql` also installs the AI Builder menu, session/message tables, and `harness:ai:*` permissions. Preview permits only `READ` capabilities and still applies the current user's normal RuoYi permissions.
 
 The concrete script entry style selected by this implementation is the single global `defineApp({...})` registration shown above. ES modules, `require`, host class lookup, filesystem, process, environment, raw networking, threads, and browser DOM access are rejected. See [`examples/customer-app/app.js`](./examples/customer-app/app.js) for an executable example and [`contracts/ui-schema-v1.json`](./contracts/ui-schema-v1.json) for the renderer contract.
 

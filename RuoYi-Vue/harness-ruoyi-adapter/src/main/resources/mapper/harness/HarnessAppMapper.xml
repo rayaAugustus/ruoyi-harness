@@ -10,6 +10,7 @@
   </resultMap>
   <sql id="columns">id,app_key,name,description,route_title,icon,order_num,required_permission,enabled,published_version_id,created_by,created_at,updated_by,updated_at</sql>
   <select id="findByKey" resultMap="App">select <include refid="columns"/> from harness_app where app_key=#{appKey}</select>
+  <select id="findByKeyForUpdate" resultMap="App">select <include refid="columns"/> from harness_app where app_key=#{appKey} for update</select>
   <select id="findById" resultMap="App">select <include refid="columns"/> from harness_app where id=#{id}</select>
   <select id="findAll" resultMap="App">select <include refid="columns"/> from harness_app order by order_num,id</select>
   <insert id="insert" parameterType="com.ruoyi.harness.core.domain.HarnessApp" useGeneratedKeys="true" keyProperty="id">

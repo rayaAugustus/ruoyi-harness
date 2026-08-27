@@ -1,0 +1,6 @@
+<script setup lang="ts">
+import {reactive} from 'vue';import HarnessRenderer from '../renderer/HarnessRenderer.vue';import type {ActionBinding,PageNode} from '../types';
+defineProps<{page?:PageNode;loading:boolean;error:string}>();const emit=defineEmits<{action:[ActionBinding,Record<string,any>]}>();const state=reactive<Record<string,any>>({});
+const resolveInput=(value:any):any=>{if(value&&typeof value==='object'&&!Array.isArray(value)&&typeof value.source==='string'&&value.source.startsWith('form.'))return state[value.source.slice(5)]||{};if(Array.isArray(value))return value.map(resolveInput);if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,resolveInput(v)]));return value};
+</script>
+<template><section class="ai-preview"><header><h3>Safe preview</h3><small>READ capabilities only</small></header><div v-if="loading" class="preview-placeholder">Loading preview…</div><div v-else-if="error" role="alert" class="harness-error">{{error}}</div><div v-else-if="!page" class="preview-placeholder">Generate and validate a draft to preview it.</div><HarnessRenderer v-else :page="page" :state="state" @action="action=>emit('action',action,resolveInput(action.input||{}))"/></section></template>
