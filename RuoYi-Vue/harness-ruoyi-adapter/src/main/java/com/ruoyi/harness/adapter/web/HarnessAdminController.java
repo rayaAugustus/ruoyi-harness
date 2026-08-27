@@ -4,7 +4,6 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.harness.api.*;
 import com.ruoyi.harness.adapter.mapper.*;
-import com.ruoyi.harness.adapter.menu.HarnessMenuSynchronizer;
 import com.ruoyi.harness.capability.CapabilityRegistry;
 import com.ruoyi.harness.core.*;
 import java.util.Map;
@@ -16,15 +15,15 @@ import org.springframework.web.bind.annotation.*;
 @ConditionalOnProperty(prefix="harness",name="enabled",havingValue="true",matchIfMissing=true)
 @RequestMapping("/harness")
 public class HarnessAdminController {
-    private final AppRegistryService apps;private final VersionService versions;private final PublicationService publication;private final HarnessMenuSynchronizer menus;
+    private final AppRegistryService apps;private final VersionService versions;private final PublicationService publication;
     private final HarnessExecutionLogMapper executionLogs;private final HarnessCapabilityLogMapper capabilityLogs;private final CapabilityRegistry capabilities;
-    public HarnessAdminController(AppRegistryService a,VersionService v,PublicationService p,HarnessMenuSynchronizer m,HarnessExecutionLogMapper e,HarnessCapabilityLogMapper c,CapabilityRegistry cr){apps=a;versions=v;publication=p;menus=m;executionLogs=e;capabilityLogs=c;capabilities=cr;}
+    public HarnessAdminController(AppRegistryService a,VersionService v,PublicationService p,HarnessExecutionLogMapper e,HarnessCapabilityLogMapper c,CapabilityRegistry cr){apps=a;versions=v;publication=p;executionLogs=e;capabilityLogs=c;capabilities=cr;}
     @GetMapping("/apps") @PreAuthorize("@ss.hasPermi('harness:app:list')") public AjaxResult apps(){return AjaxResult.success(apps.list());}
-    @PostMapping("/apps") @PreAuthorize("@ss.hasPermi('harness:app:create')") public AjaxResult create(@RequestBody AppRegistryService.AppMutation body){AppDescriptor app=apps.create(body,SecurityUtils.getUserId());menus.synchronize(app,SecurityUtils.getUsername());return AjaxResult.success(app);}
+    @PostMapping("/apps") @PreAuthorize("@ss.hasPermi('harness:app:create')") public AjaxResult create(@RequestBody AppRegistryService.AppMutation body){return AjaxResult.success(apps.create(body,SecurityUtils.getUserId()));}
     @GetMapping("/apps/{key}") @PreAuthorize("@ss.hasPermi('harness:app:list')") public AjaxResult app(@PathVariable String key){return AjaxResult.success(apps.require(key));}
-    @PutMapping("/apps/{key}") @PreAuthorize("@ss.hasPermi('harness:app:edit')") public AjaxResult update(@PathVariable String key,@RequestBody AppRegistryService.AppMutation body){AppDescriptor app=apps.update(key,body,SecurityUtils.getUserId());menus.synchronize(app,SecurityUtils.getUsername());return AjaxResult.success(app);}
-    @PostMapping("/apps/{key}/enable") @PreAuthorize("@ss.hasPermi('harness:app:disable')") public AjaxResult enable(@PathVariable String key){apps.setEnabled(key,true,SecurityUtils.getUserId());menus.synchronize(apps.require(key),SecurityUtils.getUsername());return AjaxResult.success();}
-    @PostMapping("/apps/{key}/disable") @PreAuthorize("@ss.hasPermi('harness:app:disable')") public AjaxResult disable(@PathVariable String key){apps.setEnabled(key,false,SecurityUtils.getUserId());menus.synchronize(apps.require(key),SecurityUtils.getUsername());return AjaxResult.success();}
+    @PutMapping("/apps/{key}") @PreAuthorize("@ss.hasPermi('harness:app:edit')") public AjaxResult update(@PathVariable String key,@RequestBody AppRegistryService.AppMutation body){return AjaxResult.success(apps.update(key,body,SecurityUtils.getUserId()));}
+    @PostMapping("/apps/{key}/enable") @PreAuthorize("@ss.hasPermi('harness:app:disable')") public AjaxResult enable(@PathVariable String key){apps.setEnabled(key,true,SecurityUtils.getUserId());return AjaxResult.success();}
+    @PostMapping("/apps/{key}/disable") @PreAuthorize("@ss.hasPermi('harness:app:disable')") public AjaxResult disable(@PathVariable String key){apps.setEnabled(key,false,SecurityUtils.getUserId());return AjaxResult.success();}
     @GetMapping("/apps/{key}/versions") @PreAuthorize("@ss.hasPermi('harness:app:list')") public AjaxResult versions(@PathVariable String key){return AjaxResult.success(versions.list(key));}
     @PostMapping("/apps/{key}/versions") @PreAuthorize("@ss.hasPermi('harness:app:edit')") public AjaxResult createVersion(@PathVariable String key,@RequestBody VersionMutation b){return AjaxResult.success(versions.create(key,b.sdkVersion(),b.source(),SecurityUtils.getUserId()));}
     @GetMapping("/apps/{key}/versions/{id}") @PreAuthorize("@ss.hasPermi('harness:app:list')") public AjaxResult version(@PathVariable String key,@PathVariable Long id){return AjaxResult.success(versions.require(key,id));}

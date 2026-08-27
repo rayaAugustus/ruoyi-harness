@@ -2,6 +2,7 @@ package com.ruoyi.harness.core;
 
 import com.ruoyi.harness.api.*;
 import com.ruoyi.harness.core.domain.HarnessApp;
+import com.ruoyi.harness.core.port.AppLifecycleListener;
 import com.ruoyi.harness.core.port.HarnessAppRepository;
 import java.time.Instant;
 import java.util.List;
@@ -11,7 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class AppRegistryService {
     private static final Pattern KEY = Pattern.compile("^[a-z][a-z0-9-]{1,62}[a-z0-9]$");
     private final HarnessAppRepository apps;
-    public AppRegistryService(HarnessAppRepository apps) { this.apps = apps; }
+    private final AppLifecycleListener lifecycle;
+    public AppRegistryService(HarnessAppRepository apps) { this(apps, AppLifecycleListener.noop()); }
+    public AppRegistryService(HarnessAppRepository apps, AppLifecycleListener lifecycle) { this.apps = apps; this.lifecycle = lifecycle; }
 
     public List<AppDescriptor> list() { return apps.findAll().stream().map(AppRegistryService::descriptor).toList(); }
     public AppDescriptor require(String appKey) { return descriptor(requireEntity(appKey)); }
@@ -33,16 +36,16 @@ public class AppRegistryService {
         HarnessApp app = new HarnessApp(); app.setAppKey(request.appKey()); apply(app, request);
         app.setRequiredPermission(blank(request.requiredPermission()) ? "harness:app:" + request.appKey() + ":access" : request.requiredPermission());
         app.setEnabled(Boolean.TRUE); app.setCreatedBy(actorId); app.setUpdatedBy(actorId); app.setCreatedAt(Instant.now()); app.setUpdatedAt(Instant.now());
-        apps.insert(app); return descriptor(app);
+        apps.insert(app); AppDescriptor descriptor = descriptor(app); lifecycle.onChanged(descriptor, actorId); return descriptor;
     }
 
     @Transactional
     public AppDescriptor update(String appKey, AppMutation request, Long actorId) {
         HarnessApp app = requireEntity(appKey); validate(request, false); apply(app, request);
-        app.setUpdatedBy(actorId); app.setUpdatedAt(Instant.now()); apps.update(app); return descriptor(app);
+        app.setUpdatedBy(actorId); app.setUpdatedAt(Instant.now()); apps.update(app); AppDescriptor descriptor = descriptor(app); lifecycle.onChanged(descriptor, actorId); return descriptor;
     }
 
-    @Transactional public void setEnabled(String appKey, boolean enabled, Long actorId) { apps.setEnabled(requireEntity(appKey).getId(), enabled, actorId); }
+    @Transactional public void setEnabled(String appKey, boolean enabled, Long actorId) { HarnessApp app=requireEntity(appKey); apps.setEnabled(app.getId(), enabled, actorId); app.setEnabled(enabled); app.setUpdatedBy(actorId); app.setUpdatedAt(Instant.now()); lifecycle.onChanged(descriptor(app), actorId); }
 
     private static void apply(HarnessApp app, AppMutation request) {
         app.setName(request.name()); app.setDescription(request.description()); app.setRouteTitle(request.routeTitle());

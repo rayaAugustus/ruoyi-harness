@@ -31,7 +31,7 @@ public class HarnessConfiguration {
     @Bean public PublishedArtifactCache publishedArtifactCache(HarnessProperties p){return new PublishedArtifactCache(p.getCache().isEnabled());}
     @Bean public RuoYiIdentityAdapter ruoYiIdentityAdapter(){return new RuoYiIdentityAdapter();}
     @Bean public AppAccessEvaluator appAccessEvaluator(){return (permission,identity)->permission==null||permission.isBlank()||com.ruoyi.common.utils.SecurityUtils.hasPermi(identity.permissions(),permission);}
-    @Bean public AppRegistryService appRegistryService(HarnessAppMapper m){return new AppRegistryService(m);}
+    @Bean public AppRegistryService appRegistryService(HarnessAppMapper m,AppLifecycleListener lifecycle){return new AppRegistryService(m,lifecycle);}
     @Bean public VersionService versionService(AppRegistryService a,HarnessVersionMapper v,HarnessScriptEngine e,ValidationCapabilityInvoker i,ObjectMapper m){return new VersionService(a,v,e,i,m);}
     @Bean public PublicationService publicationService(AppRegistryService a,VersionService v,HarnessAppMapper ar,HarnessVersionMapper vr,PublishedArtifactCache c){return new PublicationService(a,v,ar,vr,c);}
     @Bean public HarnessRuntimeService harnessRuntimeService(AppRegistryService a,VersionService v,HarnessVersionMapper vr,HarnessScriptEngine e,CapabilityBridge b,AppAccessEvaluator access,HarnessExecutionLogMapper logs,PublishedArtifactCache c,ObjectMapper m){return new HarnessRuntimeService(a,v,vr,e,b,access,logs,c,m);}
